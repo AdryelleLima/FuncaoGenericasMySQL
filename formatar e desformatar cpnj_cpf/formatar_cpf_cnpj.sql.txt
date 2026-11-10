@@ -1,0 +1,30 @@
+CREATE DEFINER=`root`@`%` FUNCTION `formatar_cpf_cnpj`(p_documento VARCHAR(20)) RETURNS varchar(25) CHARSET utf8mb4
+    DETERMINISTIC
+BEGIN
+	declare v_limpo VARCHAR(20);
+    -- remove qualque caractere que não seja número caso já venha semi-formatado
+    set v_limpo = REGEXP_REPLACE(p_documento, '[^0-9]', '');
+    
+    -- se tiver 11 digitos, formata como CPF(000.000.000-00)
+    IF length(v_limpo) = 11 then
+		return concat(
+        substring(v_limpo, 1, 3),'.',
+        substring(v_limpo, 4, 3),'.',
+        substring(v_limpo, 7, 3),'-',
+        substring(v_limpo, 10, 2)
+        );
+	-- se tiver 14 digitos, formata como cnpj (00.000.000/0000-00)
+	elseif length(v_limpo) = 14 then
+		return concat(
+        substring(v_limpo, 1, 2), '.',
+        substring(v_limpo, 3, 3), '.',
+        substring(v_limpo, 6, 3), '/',
+        substring(v_limpo, 9, 4), '-',
+        substring(v_limpo, 13, 2)
+        );
+	-- se não for nenhum dos dois, retorna o valor original
+    else 
+		return p_documento;
+	end if;
+
+END

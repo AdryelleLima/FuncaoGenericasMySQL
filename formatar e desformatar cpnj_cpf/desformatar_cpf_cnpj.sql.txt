@@ -1,0 +1,6 @@
+CREATE DEFINER=`root`@`%` FUNCTION `desformatar_cpf_cnpj`(p_documento VARCHAR(25)) RETURNS varchar(20) CHARSET utf8mb4
+    DETERMINISTIC
+BEGIN
+	-- utiliza expressão regular para remover tudo o que não for numero(pontos, traços e barras)
+		return regexp_replace(p_documento, '[^0-9]','');
+END
