@@ -1,0 +1,16 @@
+ CREATE DEFINER=`root`@`%` FUNCTION `validar_documento`(p_dado VARCHAR(30)) RETURNS varchar(50) CHARSET utf8mb4
+    DETERMINISTIC
+BEGIN
+    DECLARE v_tamanho INT;
+    SET v_tamanho = LENGTH(REGEXP_REPLACE(p_dado, '[^0-9]', ''));
+    
+    IF v_tamanho = 11 THEN
+        RETURN CONCAT('CPF ', validar_cpf(p_dado));
+        
+    ELSEIF v_tamanho = 14 THEN
+        RETURN CONCAT('CNPJ ', validar_cnpj(p_dado));
+        
+    ELSE
+        RETURN 'Documento com tamanho inválido';
+    END IF;
+END

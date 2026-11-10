@@ -1,0 +1,59 @@
+CREATE DEFINER=`root`@`%` FUNCTION `validar_cnpj`(p_cnpj VARCHAR(25)) RETURNS varchar(20) CHARSET utf8mb4
+    DETERMINISTIC
+BEGIN
+    DECLARE v_limpo VARCHAR(14);
+    DECLARE v_digito1 INT;
+    DECLARE v_digito2 INT;
+    DECLARE v_soma INT;
+    DECLARE v_peso INT;
+    DECLARE v_i INT;
+    
+    set v_limpo = REGEXP_REPLACE(p_cnpj, '[^0-9]', '');
+    
+    IF LENGTH(v_limpo) <> 14 OR v_limpo REGEXP '^(.)\\1+$' THEN
+        RETURN 'Inválido';
+    END IF;
+    
+    -- Cálculo do 1º Dígito Verificador (Pesos: 5,4,3,2,9,8,7,6,5,4,3,2)
+    SET v_soma = 0;
+    SET v_peso = 5;
+    SET v_i = 1;
+    WHILE v_i <= 12 DO
+        IF v_peso < 2 THEN 
+            SET v_peso = 9; 
+        END IF;
+        SET v_soma = v_soma + CAST(SUBSTRING(v_limpo, v_i, 1) AS UNSIGNED) * v_peso;
+        SET v_peso = v_peso - 1;
+        SET v_i = v_i + 1;
+    END WHILE;
+    
+    SET v_digito1 = 11 - (v_soma % 11);
+    IF v_digito1 >= 10 THEN
+        SET v_digito1 = 0;
+    END IF;
+    
+    -- Cálculo do 2º Dígito Verificador (Pesos: 6,5,4,3,2,9,8,7,6,5,4,3,2)
+    SET v_soma = 0;
+    SET v_peso = 6;
+    SET v_i = 1;
+    WHILE v_i <= 13 DO
+        IF v_peso < 2 THEN 
+            SET v_peso = 9; 
+        END IF;
+        SET v_soma = v_soma + CAST(SUBSTRING(v_limpo, v_i, 1) AS UNSIGNED) * v_peso;
+        SET v_peso = v_peso - 1;
+        SET v_i = v_i + 1;
+    END WHILE;
+    
+    SET v_digito2 = 11 - (v_soma % 11);
+    IF v_digito2 >= 10 THEN
+        SET v_digito2 = 0;
+    END IF;
+    
+    IF SUBSTRING(v_limpo, 13, 1) = CAST(v_digito1 AS CHAR) 
+       AND SUBSTRING(v_limpo, 14, 1) = CAST(v_digito2 AS CHAR) THEN
+        RETURN 'Válido'; -- Válido
+    ELSE
+        RETURN 'Inválido'; -- Inválido
+    END IF;
+END
